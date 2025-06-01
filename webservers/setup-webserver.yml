@@ -1,0 +1,19 @@
+---
+- name: Install Apache and copy a file to remote host
+  hosts: web
+  become: true
+  vars:
+    destination_path: "/var/www/html/index.html"
+  tasks:
+    - name: Install apache2
+      apt:
+        name: apache2
+        state: present
+
+    - name: Render dynamic index.html for each host
+      template:
+        src: templates/index.html.j2
+        dest: "{{ destination_path }}"
+        owner: www-data
+        group: www-data
+        mode: '0644'

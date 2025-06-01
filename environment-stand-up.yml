@@ -1,0 +1,11 @@
+# This ansible playbook will setup the entire challenge
+- import_playbook: upgrade-system.yml
+- import_playbook: user-setup/deploy_expensify_user.yml
+- import_playbook: user-setup/passwordless-sudo.yml
+- import_playbook: webservers/setup-webserver.yml
+- import_playbook: nagios-setup/install-nagios.yml
+- import_playbook: nagios-setup/add-hosts-to-nagios.yml
+- import_playbook: nagios-setup/add-custom-nagios-check.yml
+- import_playbook: haproxy-setup/install-haproxy.yml
+- import_playbook: generate-push-ssh-key.yml
+- import_playbook: network-lockdown.yml
