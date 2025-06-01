@@ -1,0 +1,26 @@
+---
+- name: Check passwordless sudo for user
+  hosts: load_balancer
+  become: false
+  vars:
+    test_user: expensify
+
+  tasks:
+    - name: Ensure we can SSH as the user
+      ansible.builtin.ping:
+      remote_user: "{{ test_user }}"
+
+    - name: Check passwordless sudo
+      ansible.builtin.command: sudo -n true
+      remote_user: "{{ test_user }}"
+      register: sudo_check
+      ignore_errors: yes
+
+    - name: Report sudo check result
+      ansible.builtin.debug:
+        msg: >
+          {% if sudo_check.rc == 0 %}
+            User {{ test_user }} has passwordless sudo.
+          {% else %}
+            User {{ test_user }} does NOT have passwordless sudo.
+          {% endif %}

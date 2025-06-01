@@ -1,0 +1,104 @@
+---
+- name: Simulate and verify HAProxy failover based on live backend content
+  hosts: load_balancer
+  become: true
+
+  vars:
+    test_url: "http://localhost:60001"
+    test_loops: 10
+    backend_group: "web"
+
+  tasks:
+    - name: Make a test request to detect current backend content
+      shell: curl -s {{ test_url }} | grep '<p>' || echo "no response"
+      register: initial_response
+
+    - name: Extract backend identifier (a or b)
+      set_fact:
+        active_backend_id: "{{ initial_response.stdout | regex_search('a|b') }}"
+
+    - name: Build content-to-host map from inventory
+      set_fact:
+        content_host_map: >-
+          {{
+            dict(
+              groups[backend_group] | map('extract', hostvars, 'content_id') |
+              zip(groups[backend_group])
+            )
+          }}
+
+    - name: Map identifier to backend host
+      set_fact:
+        active_backend: "{{ content_host_map[active_backend_id] }}"
+        surviving_backend: >-
+          {{
+            (
+              groups[backend_group] | select('ne', content_host_map[active_backend_id]) | list
+            )[0] | string | trim
+          }}
+
+    - name: Show which backend will be stopped
+      debug:
+        msg: "Detected active backend '{{ active_backend_id }}' ({{ active_backend }}). Stopping Apache there. Surviving backend is {{ surviving_backend }}."
+
+    - name: Stop Apache on active backend
+      delegate_to: "{{ active_backend }}"
+      become: true
+      service:
+        name: apache2
+        state: stopped
+
+    - name: Wait for HAProxy to detect backend down
+      pause:
+        seconds: 10
+
+    - name: Run curl loop to capture backend responses after failover
+      shell: |
+        for i in $(seq 1 {{ test_loops }}); do
+          curl -s {{ test_url }} | grep '<p>' || echo "no response"
+        done
+      register: failover_output
+
+    - name: Extract unique backend responses after failover
+      set_fact:
+        failover_responses: "{{ failover_output.stdout_lines | unique }}"
+
+    - name: Show failover responses
+      debug:
+        var: failover_responses
+
+    - name: Check failover worked (traffic moved to surviving backend)
+      assert:
+        that:
+          - failover_responses | length == 1
+          - hostvars[surviving_backend].content_id in failover_responses[0]
+        fail_msg: "Failover failed! Traffic did not fully shift to {{ surviving_backend }}."
+        success_msg: "Failover confirmed: traffic shifted to {{ surviving_backend }}."
+
+    - name: Restart Apache on previously active backend
+      delegate_to: "{{ active_backend }}"
+      become: true
+      service:
+        name: apache2
+        state: started
+
+    - name: Wait for HAProxy to detect backend recovery
+      pause:
+        seconds: 10
+
+    - name: Run curl loop again to verify sticky session holds
+      shell: |
+        rm -f cookies.txt
+        for i in $(seq 1 {{ test_loops }}); do
+          curl -s -c cookies.txt -b cookies.txt {{ test_url }} | grep '<p>' || echo "no response"
+        done
+        rm -f cookies.txt
+      register: post_recovery_output
+
+    - name: Extract unique backend responses after recovery
+      set_fact:
+        post_recovery_responses: "{{ post_recovery_output.stdout_lines | unique }}"
+
+    - name: Show post-recovery responses
+      debug:
+        var: post_recovery_responses

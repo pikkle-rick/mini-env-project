@@ -1,0 +1,35 @@
+---
+- name: Disable ICMP (ping) one host at a time
+  hosts: web
+  become: true
+  vars:
+    action: "block"   # set to "block" or "unblock"
+  serial: 1           # apply tasks to one host at a time
+
+  tasks:
+    - name: Show which host is being processed
+      debug:
+        msg: "Processing host {{ inventory_hostname }}"
+
+    - name: Block ICMP ping (DROP echo-request)
+      ansible.builtin.shell: |
+        iptables -I INPUT -p icmp --icmp-type echo-request -j DROP
+      when: action == "block"
+
+    - name: Unblock ICMP ping (REMOVE DROP rule)
+      ansible.builtin.shell: |
+        iptables -D INPUT -p icmp --icmp-type echo-request -j DROP
+      when: action == "unblock"
+
+    - name: Show current iptables ICMP rules
+      ansible.builtin.shell: |
+        iptables -L INPUT -v -n | grep icmp || echo "No ICMP rules found"
+      register: icmp_rules
+
+    - name: Display ICMP rule status
+      ansible.builtin.debug:
+        var: icmp_rules.stdout_lines
+
+    - name: Wait for user input before continuing to next host
+      pause:
+        prompt: "Press ENTER to continue to the next host"

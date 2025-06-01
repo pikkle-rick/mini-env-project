@@ -15,7 +15,7 @@ fi
 
 # Create the user if it doesn't exist
 if ! id "expensify" &>/dev/null; then
-  echo "[+] Creating user 'expensify'..."
+  echo "Creating user 'expensify'..."
   useradd -m -s /bin/bash expensify
 fi
 
@@ -24,7 +24,7 @@ echo "Adding 'expensify' to sudoers..."
 usermod -aG sudo expensify
 
 # Set up SSH authorized_keys
-echo "[+] Setting up SSH keys..."
+echo "Setting up SSH keys..."
 mkdir -p /home/expensify/.ssh
 cp "$KEY_FILE" /home/expensify/.ssh/authorized_keys
 chown -R expensify:expensify /home/expensify/.ssh

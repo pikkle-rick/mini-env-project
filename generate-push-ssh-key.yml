@@ -1,0 +1,59 @@
+---
+- name: Generate SSH key on bastion and distribute to other hosts
+  hosts: monitoring
+  become: true
+  vars:
+    ssh_key_path: /home/ubuntu/.ssh/id_rsa
+    ssh_user: ubuntu
+
+  tasks:
+    - name: Ensure .ssh directory exists
+      file:
+        path: /home/{{ ssh_user }}/.ssh
+        state: directory
+        mode: '0700'
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+
+    - name: Check if SSH key exists
+      stat:
+        path: "{{ ssh_key_path }}"
+      register: ssh_key_exists
+
+    - name: Generate SSH key if it doesn't exist
+      openssh_keypair:
+        path: "{{ ssh_key_path }}"
+        type: rsa
+        size: 4096
+        owner: "{{ ssh_user }}"
+        group: "{{ ssh_user }}"
+        mode: '0600'
+      when: not ssh_key_exists.stat.exists
+
+    - name: Read SSH public key content from bastion
+      slurp:
+        src: "{{ ssh_key_path }}.pub"
+      register: bastion_pubkey_raw
+
+    - name: Display generated SSH public key
+      debug:
+        msg: "{{ bastion_pubkey_raw.content | b64decode }}"
+
+- name: Copy bastion SSH public key to web and load balancer hosts
+  hosts: web:load_balancer
+  become: true
+  vars:
+    ssh_user: ubuntu
+    bastion_host: "{{ groups['monitoring'][0] }}"
+
+  tasks:
+    - name: Fetch bastion's SSH public key
+      delegate_to: "{{ bastion_host }}"
+      slurp:
+        src: /home/{{ ssh_user }}/.ssh/id_rsa.pub
+      register: bastion_pubkey
+
+    - name: Install bastion's SSH public key on remote hosts
+      authorized_key:
+        user: "{{ ssh_user }}"
+        key: "{{ bastion_pubkey['content'] | b64decode }}"
