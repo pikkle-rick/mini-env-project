@@ -5,8 +5,8 @@
   vars:
     nagios_plugin_dir: /usr/local/nagios/libexec
     nagios_cfg_dir: /usr/local/nagios/etc
-    local_plugin_path:  nagios-plugin/host-monitor.py        # adjust to where you saved it
-    local_backend_file: ./files/hosts.txt                     # adjust to where you saved it
+    local_plugin_path:  nagios-plugin/host-monitor.py
+    local_backend_file: ./files/hosts.txt           
     remote_plugin_path: "{{ nagios_plugin_dir }}/check_backends.py"
     remote_backend_file: "{{ nagios_cfg_dir }}/hosts.txt"
 
