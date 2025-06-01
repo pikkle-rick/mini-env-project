@@ -177,6 +177,7 @@ ansible-playbook -i hosts.ini network-lockdown.yml
 
 ## Notes
 
+- You asked for detailed notes of my process, generally whenever I start something it starts with notes on paper. I included the notes I scribbled down on paper in the repo.
 - I updated `authorized_keys` for `ubuntu` to use a different computer. The original SSH key was on my desktop.
 - In the email, the Ubuntu version referenced was 20.04; the actual version was 24.x.
 - I chose the load balancer host based on the IP address. The 54.x.x.x address is on a completely different network than the other three hosts. The other three hosts were randomly assigned for the web servers and monitoring host.
