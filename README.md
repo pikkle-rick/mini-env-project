@@ -8,6 +8,7 @@ Contains the code used while establishing the mini environment challenge.
 - I ultimately chose to use ansible to configure the hosts.
   - Repeatability wasn’t in the requirements, and this was a small task. In the beginning leaned toward **not** using Ansible because it didn’t seem worth the additional time based on requirements.
   - After working on this for a bit I decided it would be good to show that I could use the tool, and I got tired of reapplying some changes during manual testing, so I used Ansible after all. It also supports Jinja templating out of the box, making it easy to create and apply the `index.html` and HAProxy config file(s). I didn’t go back and rewrite the bash script I originally started with for setting up the users. Some tech debt was created here but could be easily migrated over.
+  - I rewrote the initial scripts to be an ansible playbook so we have can have on playbook to launch the entire environment.
 - I used Apache for the web servers: extremely popular, free, available via `apt`, and already used for Nagios.
   - Popularity usually means great community supporting documentation.
 - I chose HAProxy as the load balancer; it is extremely popular, lightweight, and readily available via `apt`.
@@ -173,6 +174,14 @@ As someone who has locked himself out of remote boxes before (who hasn’t!?), I
 
 ```bash
 ansible-playbook -i hosts.ini network-lockdown.yml
+```
+
+## Setup Complete Environment
+
+Running the playbook below will run the rest of the playbooks in the correct order to stand up the entire challenge.
+
+```bash
+ansible-playbook -i hosts.ini environment-stand-up.yml
 ```
 
 ## Notes
