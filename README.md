@@ -7,13 +7,8 @@ Contains the code used while establishing the mini environment challenge.
 
 - I ultimately chose to use ansible to configure the hosts.
   - Repeatability wasn’t in the requirements, and this was a small task. In the beginning leaned toward **not** using Ansible because it didn’t seem worth the additional time based on requirements.
-  - After working on this for a bit I decided it would be good to show that I could use the tool, and I got tired of reapplying some changes during manual testing, so I used Ansible after all. It also supports Jinja templating out of the box, making it easy to create and apply the `index.html` and HAProxy config file(s). I didn’t go back and rewrite the bash script I originally started with for setting up the users. Some tech debt was created here but could be easily migrated over.
+  - After working on this for a bit I decided it would be good to show that I could use the tool, and I got tired of reapplying some changes during manual testing, so I used Ansible after all. It also supports Jinja templating out of the box, making it easy to create and apply the `index.html` and HAProxy config file(s).
   - I rewrote the initial scripts to be an ansible playbook so we have can have on playbook to launch the entire environment.
-  - The initial structure of the repo doesn't follow the Ansible recommended conventions very strictly because:
-    - I thought it introduced a lot of overhead for this simple task.
-    - In an email exchange "simplicity and clarity" were mentioned as objectives and while I can see both sides of the argument (following the convention makes it simpler versus not) I ultimately decided what I originally implemented was pretty easy to digest.
-    - Depending on how often you use ansible it can make it more challenging to debug and read following the convention strictly.
-    - I have another branch pushed that refractors the repo to more tightly align with the recommended Anssible conventions if that would be preferred. Normally I would either look at examples of how it has been previously done/implemented or ask for guidance.
 - I used Apache for the web servers: extremely popular, free, available via `apt`, and already used for Nagios.
   - Popularity usually means great community supporting documentation.
 - I chose HAProxy as the load balancer; it is extremely popular, lightweight, and readily available via `apt`.
@@ -60,20 +55,6 @@ graph LR
   MON --> WB
   MON --> LB
 ```
-
-## Setup Users
-
-1. I created two helper scripts to automate some of the actions: `copyFiles.sh` and `userSetup.sh`.
-2. I created an SSH key for the `ubuntu` user on the load balancer node.
-3. I distributed the newly created key to the remaining hosts, allowing SSH access from the load balancer.
-
-- `copyFiles.sh`: Copies the public key file and the `userSetup.sh` script to the remote hosts listed in the `hosts` file and runs the `userSetup.sh` script on the remote host.
-
-  **Usage:** `<ssh_user> <hosts_file> <path_to_public_key>`
-
-- `userSetup.sh`: Creates the `expensify` user, adds sudo, and sets the `authorized_keys` file.
-
-- `hosts`: Text file containing a list of IPs separated by newlines.
 
 ## Update Base OS
 
@@ -136,11 +117,6 @@ ansible-playbook -i hosts.ini generate-push-ssh-key.yml
 - Web server B: 34.220.22.168
 
 1. I installed Apache:
-
-   ```bash
-   apt install apache2
-   ```
-
    - I tested that Apache was working.
 2. I updated the `index.html` on server A or B depending on host IP.
    - I tested each server individually to verify:
@@ -163,10 +139,10 @@ ansible-playbook -i hosts.ini webservers/setup-webserver.yml
     - 3.7. Forward all ports in the range `60000–65000` to backend servers' port `80`.
 
 ```bash
-ansible-playbook -i hosts.ini haproxy-setup/install-haproxy.yml
+ansible-playbook -i hosts.ini install-haproxy.yml
 ```
 
-## Lockdown Network
+## Secure Network
 
 As someone who has locked himself out of remote boxes before (who hasn’t!?), I was very careful with this step. I had multiple terminals already shelled into the hosts and set up the playbook to run one set of servers at a time so I could verify the changes before fully committing.
 
@@ -178,7 +154,7 @@ As someone who has locked himself out of remote boxes before (who hasn’t!?), I
    - 6.3. Allow port 80 on the web servers only from the load balancer.
 
 ```bash
-ansible-playbook -i hosts.ini network-lockdown.yml
+ansible-playbook -i hosts.ini secure-network.yml
 ```
 
 ## Setup Complete Environment
@@ -186,7 +162,7 @@ ansible-playbook -i hosts.ini network-lockdown.yml
 Running the playbook below will run the rest of the playbooks in the correct order to stand up the entire challenge.
 
 ```bash
-ansible-playbook -i hosts.ini environment-stand-up.yml
+ansible-playbook -i hosts.ini environment-standup.yml
 ```
 
 ## Notes
@@ -196,7 +172,7 @@ ansible-playbook -i hosts.ini environment-stand-up.yml
 - In the email, the Ubuntu version referenced was 20.04; the actual version was 24.x.
 - I chose the load balancer host based on the IP address. The 54.x.x.x address is on a completely different network than the other three hosts. The other three hosts were randomly assigned for the web servers and monitoring host.
 - I added the monitoring Ubuntu SSH key under the `expensify` user on the load balancer for testing.
-- I originally installed Nagios myself so the ansible playbook to install Nagios hasn't been tested other than with `ansible-playbook --check`. If I was working normally I would stand up another EC2 to test the playbook out on that way I wouldn't impact what was working.
+- I originally installed Nagios myself so the ansible playbook to install Nagios hasn't been tested. If I was working normally I would stand up another EC2 to test the playbook out on that way I wouldn't impact what was working.
 
 ## Challenges
 

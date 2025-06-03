@@ -8,4 +8,4 @@
 - import_playbook: nagios-setup/add-custom-nagios-check.yml
 - import_playbook: haproxy-setup/install-haproxy.yml
 - import_playbook: generate-push-ssh-key.yml
-- import_playbook: network-lockdown.yml
+- import_playbook: secure-network.yml
