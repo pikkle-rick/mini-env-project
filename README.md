@@ -7,7 +7,7 @@ Contains the code used while establishing the mini environment challenge.
 
 - I ultimately chose to use ansible to configure the hosts.
   - Repeatability wasn’t in the requirements, and this was a small task. In the beginning leaned toward **not** using Ansible because it didn’t seem worth the additional time based on requirements.
-  - After working on this for a bit I decided it would be good to show that I could use the tool, and I got tired of reapplying some changes during manual testing, so I used Ansible after all. It also supports Jinja templating out of the box, making it easy to create and apply the `index.html` and HAProxy config file(s). I didn’t go back and rewrite the bash script I originally started with for setting up the users. Some tech debt was created here but could be easily migrated over.
+  - After working on this for a bit I decided it would be good to show that I could use the tool, and I got tired of reapplying some changes during manual testing, so I used Ansible after all. It also supports Jinja templating out of the box, making it easy to create and apply the `index.html` and HAProxy config file(s).
   - I rewrote the initial scripts to be an ansible playbook so we have can have on playbook to launch the entire environment.
 - I used Apache for the web servers: extremely popular, free, available via `apt`, and already used for Nagios.
   - Popularity usually means great community supporting documentation.
@@ -117,11 +117,6 @@ ansible-playbook -i hosts.ini generate-push-ssh-key.yml
 - Web server B: 34.220.22.168
 
 1. I installed Apache:
-
-   ```bash
-   apt install apache2
-   ```
-
    - I tested that Apache was working.
 2. I updated the `index.html` on server A or B depending on host IP.
    - I tested each server individually to verify:
@@ -147,7 +142,7 @@ ansible-playbook -i hosts.ini webservers/setup-webserver.yml
 ansible-playbook -i hosts.ini install-haproxy.yml
 ```
 
-## Lockdown Network
+## Secure Network
 
 As someone who has locked himself out of remote boxes before (who hasn’t!?), I was very careful with this step. I had multiple terminals already shelled into the hosts and set up the playbook to run one set of servers at a time so I could verify the changes before fully committing.
 
