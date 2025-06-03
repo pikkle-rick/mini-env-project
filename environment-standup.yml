@@ -63,8 +63,7 @@
   hosts: webservers
   become: yes
   roles:
-    - role: secure-network
-      tasks_from: secure-webserver.yml
+    - role: secure-webservers
 
 - name: Wait before continuing to bastion host
   hosts: localhost

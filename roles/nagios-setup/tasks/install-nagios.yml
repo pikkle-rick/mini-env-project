@@ -4,101 +4,110 @@
     name:
       - autoconf
       - gcc
-      - make
+      - libc6 
+      - make 
+      - wget
       - unzip
       - apache2
-      - apache2-utils
       - php
       - libapache2-mod-php
       - libgd-dev
-      - libmcrypt-dev
-      - libssl-dev
-      - daemon
-      - wget
-      - build-essential
-      - libtool
-      - libjpeg-dev
-      - libpng-dev
-      - libperl-dev
-      - libdbi-dev
+      - ufw
     state: present
     update_cache: yes
 
-- name: Create Nagios user and group
-  user:
-    name: "{{ nagios_user }}"
-    shell: /bin/bash
-    create_home: yes
-
-- name: Create nagcmd group
-  group:
-    name: "{{ nagios_group }}"
-
-- name: Ensure nagcmd group exists and is present
-  group:
-    name: "{{ nagios_group }}"
+- name: Install required packages part 2
+  apt:
+    name:
+      - openssl 
+      - libssl-dev
     state: present
+    update_cache: yes
 
-- name: Wait briefly for system to register new group
-  pause:
-    seconds: 2
-
-- name: Add nagios and apache users to nagcmd group
-  user:
-    name: "{{ item }}"
-    groups: "{{ nagios_group }}"
-    append: yes
-  loop:
-    - "{{ nagios_user }}"
-    - "{{ apache_user }}"
+- name: Install required packages for Nagios plugins
+  apt:
+    name:
+      - libmcrypt-dev
+      - bc
+      - gawk
+      - dc
+      - build-essential
+      - snmp
+      - libnet-snmp-perl 
+      - gettext
+    state: present
+    update_cache: yes
 
 - name: Download Nagios source
   get_url:
     url: "https://github.com/NagiosEnterprises/nagioscore/releases/download/nagios-{{ nagios_version }}/nagios-{{ nagios_version }}.tar.gz"
-    dest: /tmp/nagios.tar.gz
+    dest: /tmp/nagioscore.tar.gz
+
+- name: Download Nagios plugins
+  get_url:
+    url: "https://github.com/nagios-plugins/nagios-plugins/releases/download/release-{{ nagios_plugins_version }}/nagios-plugins-{{ nagios_plugins_version }}.tar.gz"
+    dest: /tmp/nagios-plugins.tar.gz
 
 - name: Extract Nagios
   unarchive:
-    src: /tmp/nagios.tar.gz
+    src: /tmp/nagioscore.tar.gz
+    dest: /tmp/
+    remote_src: yes
+
+- name: Extract Nagios Plugins
+  unarchive:
+    src: /tmp/nagios-plugins.tar.gz
     dest: /tmp/
     remote_src: yes
 
 - name: Compile and install Nagios
   shell: |
     cd /tmp/nagios-{{ nagios_version }}
-    ./configure --with-command-group={{ nagios_group }}
+    ./configure /configure --with-httpd-conf=/etc/apache2/sites-enabled
     make all
+    make install-groups-users
+    usermod -a -G nagios www-data
     make install
-    make install-init
+    make install-daemoninit
     make install-commandmode
     make install-config
     make install-webconf
   args:
     executable: /bin/bash
 
+- name: Enable Apache rewrite module
+  command: a2enmod rewrite
+  notify: reload apache
+
+- name: Enable Apache cgi module
+  command: a2enmod cgi
+  notify: reload apache
+
+- name: Ensure Apache is enabled and running
+  service:
+    name: apache2
+    enabled: yes
+    state: started
+
 - name: Create Nagios web user
   shell: htpasswd -bc /usr/local/nagios/etc/htpasswd.users nagiosadmin nagiosadmin
 
-- name: Enable Apache CGI module
-  shell: a2enmod cgi
-  args:
-    executable: /bin/bash
-  notify: reload apache
-
-- name: Enable Apache service
-  systemd:
-    name: apache2
-    enabled: yes
-  notify: reload apache
-
-- name: Enable Nagios service
-  systemd:
+- name: Enable and start Nagios service
+  service:
     name: nagios
     enabled: yes
-  notify: restart nagios
+    state: started
 
-- name: Add /usr/local/nagios/bin to system PATH
-  copy:
-    dest: /etc/profile.d/nagios.sh
-    content: 'export PATH=$PATH:/usr/local/nagios/bin'
-    mode: '0755'
+- name: Compile and install Nagios Plugins
+  shell: |
+    cd /tmp/nagios-plugins-{{ nagios_plugins_version }}
+    ./configure
+    make
+    make install
+  args:
+    executable: /bin/bash
+
+- name: Restart Nagios
+  service:
+    name: nagios
+    state: restarted
