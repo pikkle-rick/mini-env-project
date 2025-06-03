@@ -9,6 +9,10 @@ Contains the code used while establishing the mini environment challenge.
   - Repeatability wasn’t in the requirements, and this was a small task. In the beginning leaned toward **not** using Ansible because it didn’t seem worth the additional time based on requirements.
   - After working on this for a bit I decided it would be good to show that I could use the tool, and I got tired of reapplying some changes during manual testing, so I used Ansible after all. It also supports Jinja templating out of the box, making it easy to create and apply the `index.html` and HAProxy config file(s).
   - I rewrote the initial scripts to be an ansible playbook so we have can have on playbook to launch the entire environment.
+  - I chose not to implement a directory structure that strictly adheres to the Ansible recommended convention for the following reasons:
+    - In your email, you mentioned that **simplicity and clarity** were priorities, and I felt that strictly following the recommended convention for this relatively simple task would introduce unnecessary overhead and reduce simplicity.
+    - While the recommended Ansible structure is more modular, it can make debugging and understanding the setup more difficult, especially for those who don’t use the tool frequently.
+    - I do, however, have a refactored [branch](https://github.com/pikkle-rick/mini-env-project/tree/refactor-structure-for-ansible) that implements a stricter adherence to Ansible’s recommendations.
 - I used Apache for the web servers: extremely popular, free, available via `apt`, and already used for Nagios.
   - Popularity usually means great community supporting documentation.
 - I chose HAProxy as the load balancer; it is extremely popular, lightweight, and readily available via `apt`.
