@@ -1,0 +1,13 @@
+---
+nagios_cfg_dir: /usr/local/nagios/etc
+nagios_cfg_file: "{{ nagios_cfg_dir }}/objects/monitored_hosts.cfg"
+nagios_plugin_dir: /usr/local/nagios/libexec
+local_plugin_path:  nagios-plugin/host-monitor.py
+local_backend_file: ./files/hosts.txt           
+remote_plugin_path: "{{ nagios_plugin_dir }}/check_backends.py"
+remote_backend_file: "{{ nagios_cfg_dir }}/hosts.txt"
+nagios_version: "4.4.14"
+nagios_plugins_version: "2.4.12"
+nagios_user: nagios
+nagios_group: nagcmd
+apache_user: www-data

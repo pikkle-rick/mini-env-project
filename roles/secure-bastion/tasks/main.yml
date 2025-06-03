@@ -1,0 +1,34 @@
+---
+- name: Ensure UFW is installed
+  package:
+    name: ufw
+    state: present
+
+- name: Reset UFW rules
+  shell: ufw --force reset
+
+- name: Set default deny incoming
+  ufw:
+    direction: incoming
+    policy: deny
+
+- name: Allow outgoing traffic
+  ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow port 80 from anywhere
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+
+- name: Allow SSH on bastion from anywhere
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+
+- name: Enable UFW
+  ufw:
+    state: enabled

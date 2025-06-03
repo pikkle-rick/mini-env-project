@@ -1,6 +1,6 @@
 ---
 - name: Disable ICMP (ping) one host at a time
-  hosts: web
+  hosts: webserver
   become: true
   vars:
     action: "block"   # set to "block" or "unblock"

@@ -56,20 +56,6 @@ graph LR
   MON --> LB
 ```
 
-## Setup Users
-
-1. I created two helper scripts to automate some of the actions: `copyFiles.sh` and `userSetup.sh`.
-2. I created an SSH key for the `ubuntu` user on the load balancer node.
-3. I distributed the newly created key to the remaining hosts, allowing SSH access from the load balancer.
-
-- `copyFiles.sh`: Copies the public key file and the `userSetup.sh` script to the remote hosts listed in the `hosts` file and runs the `userSetup.sh` script on the remote host.
-
-  **Usage:** `<ssh_user> <hosts_file> <path_to_public_key>`
-
-- `userSetup.sh`: Creates the `expensify` user, adds sudo, and sets the `authorized_keys` file.
-
-- `hosts`: Text file containing a list of IPs separated by newlines.
-
 ## Update Base OS
 
 It is generally considered good practice to keep packages up to date, as you are usually patching CVEs with the updates.
@@ -158,7 +144,7 @@ ansible-playbook -i hosts.ini webservers/setup-webserver.yml
     - 3.7. Forward all ports in the range `60000–65000` to backend servers' port `80`.
 
 ```bash
-ansible-playbook -i hosts.ini haproxy-setup/install-haproxy.yml
+ansible-playbook -i hosts.ini install-haproxy.yml
 ```
 
 ## Lockdown Network

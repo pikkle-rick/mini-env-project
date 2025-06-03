@@ -1,0 +1,8 @@
+- name: Run only haproxy-setup role
+  hosts: loadbalancer
+  become: yes
+  roles:
+    - role: haproxy-setup
+      vars:
+        haproxy_backend_group: webservers
+        haproxy_balance_method: source

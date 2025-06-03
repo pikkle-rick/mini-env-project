@@ -1,0 +1,4 @@
+---
+ssh_key_path: /home/ubuntu/.ssh/id_rsa
+ssh_user: ubuntu
+bastion_host: "{{ groups['monitoring'][0] }}"

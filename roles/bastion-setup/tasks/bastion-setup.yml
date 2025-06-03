@@ -1,0 +1,32 @@
+---
+- name: Ensure .ssh directory exists
+  file:
+    path: /home/{{ ssh_user }}/.ssh
+    state: directory
+    mode: '0700'
+    owner: "{{ ssh_user }}"
+    group: "{{ ssh_user }}"
+
+- name: Check if SSH key exists
+  stat:
+    path: "{{ ssh_key_path }}"
+  register: ssh_key_exists
+
+- name: Generate SSH key if it doesn't exist
+  openssh_keypair:
+    path: "{{ ssh_key_path }}"
+    type: rsa
+    size: 4096
+    owner: "{{ ssh_user }}"
+    group: "{{ ssh_user }}"
+    mode: '0600'
+  when: not ssh_key_exists.stat.exists
+
+- name: Read SSH public key content from bastion
+  slurp:
+    src: "{{ ssh_key_path }}.pub"
+  register: bastion_pubkey_raw
+
+- name: Display generated SSH public key
+  debug:
+    msg: "{{ bastion_pubkey_raw.content | b64decode }}"

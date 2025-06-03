@@ -1,0 +1,65 @@
+---
+- name: Ensure public key file exists locally
+  ansible.builtin.stat:
+    path: "{{ pubkey_path }}"
+  delegate_to: localhost
+  become: no
+  register: pubkey_file
+
+- name: Fail if public key file is missing
+  ansible.builtin.fail:
+    msg: "Public key file {{ pubkey_path }} not found on control machine."
+  become: no
+  when: not pubkey_file.stat.exists
+
+- name: Ensure user '{{ expensify_user }}' exists
+  ansible.builtin.user:
+    name: "{{ expensify_user }}"
+    shell: /bin/bash
+    state: present
+    create_home: yes
+
+- name: Ensure '{{ expensify_user }}' is in sudo group
+  ansible.builtin.user:
+    name: "{{ expensify_user }}"
+    groups: sudo
+    append: yes
+
+- name: Create .ssh directory for '{{ expensify_user }}'
+  ansible.builtin.file:
+    path: "/home/{{ expensify_user }}/.ssh"
+    state: directory
+    owner: "{{ expensify_user }}"
+    group: "{{ expensify_user }}"
+    mode: '0700'
+
+- name: Copy public key to authorized_keys
+  ansible.builtin.copy:
+    src: "{{ pubkey_path }}"
+    dest: "/home/{{ expensify_user }}/.ssh/authorized_keys"
+    owner: "{{ expensify_user }}"
+    group: "{{ expensify_user }}"
+    mode: '0600'
+
+- name: Confirm completion
+  ansible.builtin.debug:
+    msg: "User '{{ expensify_user }}' created and SSH key installed on {{ inventory_hostname }}"
+
+- name: Ensure user exists
+  ansible.builtin.user:
+    name: "{{ target_user }}"
+    state: present
+
+- name: Add user to sudo group
+  ansible.builtin.user:
+    name: "{{ target_user }}"
+    groups: sudo
+    append: yes
+
+- name: Allow passwordless sudo for user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ target_user }}"
+    content: "{{ target_user }} ALL=(ALL) NOPASSWD:ALL"
+    owner: root
+    group: root
+    mode: '0440'

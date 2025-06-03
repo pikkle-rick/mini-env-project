@@ -1,0 +1,51 @@
+---
+- name: Copy host-monitor.py plugin
+  copy:
+    src: "{{ local_plugin_path }}"
+    dest: "{{ remote_plugin_path }}"
+    mode: '0755'
+
+- name: Copy host.txt file
+  copy:
+    src: "{{ local_backend_file }}"
+    dest: "{{ remote_backend_file }}"
+    mode: '0644'
+
+- name: Add check_backends command to commands.cfg
+  blockinfile:
+    path: "{{ nagios_cfg_dir }}/objects/commands.cfg"
+    marker: "# {mark} ANSIBLE CHECK_BACKENDS"
+    block: |
+      define command {
+          command_name    check_backends
+          command_line    {{ remote_plugin_path }}
+      }
+
+- name: Add backend service check to localhost.cfg
+  blockinfile:
+    path: "{{ nagios_cfg_dir }}/objects/localhost.cfg"
+    marker: "# {mark} ANSIBLE BACKEND CHECK"
+    block: |
+      define service {
+          use                     local-service
+          host_name               localhost
+          service_description     Backend Server Check
+          check_command           check_backends
+      }
+
+- name: Validate Nagios configuration
+  shell: /usr/local/nagios/bin/nagios -v {{ nagios_cfg_dir }}/nagios.cfg
+  register: nagios_check
+  ignore_errors: true
+
+- name: Show Nagios validation result
+  debug:
+    var: nagios_check.stdout_lines
+
+- name: Fail if Nagios validation failed
+  fail:
+    msg: "Nagios configuration check failed!"
+  when: nagios_check.rc != 0
+
+- name: Trigger Nagios restart after config validation
+  meta: flush_handlers

@@ -1,12 +1,12 @@
 ---
 - name: Simulate and verify HAProxy failover based on live backend content
-  hosts: load_balancer
+  hosts: loadbalancer
   become: true
 
   vars:
     test_url: "http://localhost:60001"
     test_loops: 10
-    backend_group: "web"
+    backend_group: "webservers"
 
   tasks:
     - name: Make a test request to detect current backend content

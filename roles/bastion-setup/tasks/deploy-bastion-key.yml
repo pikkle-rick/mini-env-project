@@ -1,0 +1,11 @@
+---
+- name: Fetch bastion's SSH public key
+  delegate_to: "{{ bastion_host }}"
+  slurp:
+    src: /home/{{ ssh_user }}/.ssh/id_rsa.pub
+  register: bastion_pubkey
+
+- name: Install bastion's SSH public key on remote hosts
+  authorized_key:
+    user: "{{ ssh_user }}"
+    key: "{{ bastion_pubkey['content'] | b64decode }}"

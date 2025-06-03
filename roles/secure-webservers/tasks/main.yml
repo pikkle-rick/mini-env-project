@@ -1,0 +1,36 @@
+---
+- name: Ensure UFW is installed
+  package:
+    name: ufw
+    state: present
+
+- name: Reset UFW rules
+  shell: ufw --force reset
+
+- name: Set default deny incoming
+  ufw:
+    direction: incoming
+    policy: deny
+
+- name: Allow outgoing traffic
+  ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow SSH only from bastion
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+    from_ip: "{{ bastion_ip }}"
+
+- name: Allow port 80 only from load balancer
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+    from_ip: "{{ loadbalancer_ip }}"
+
+- name: Enable UFW
+  ufw:
+    state: enabled

@@ -1,0 +1,5 @@
+---
+bastion_host: "{{ groups['monitoring'][0] }}"
+bastion_ip: "{{ hostvars[bastion_host].ansible_host | default(bastion_host) }}"
+loadbalancer_host: "{{ groups['loadbalancer'][0] }}"
+loadbalancer_ip: "{{ hostvars[loadbalancer_host].ansible_host | default(loadbalancer_host) }}"

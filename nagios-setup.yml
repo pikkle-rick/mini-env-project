@@ -1,0 +1,7 @@
+---
+- name: Run Nagios Setup Role
+  hosts: monitoring
+  become: true
+
+  roles:
+    - nagios-setup

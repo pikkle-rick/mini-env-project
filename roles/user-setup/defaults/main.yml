@@ -1,0 +1,4 @@
+---
+expensify_user: expensify
+pubkey_path: roles/user-setup/files/infra_team_authorized_keys
+target_user: expensify

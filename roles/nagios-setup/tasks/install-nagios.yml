@@ -1,0 +1,104 @@
+---
+- name: Install required packages
+  apt:
+    name:
+      - autoconf
+      - gcc
+      - make
+      - unzip
+      - apache2
+      - apache2-utils
+      - php
+      - libapache2-mod-php
+      - libgd-dev
+      - libmcrypt-dev
+      - libssl-dev
+      - daemon
+      - wget
+      - build-essential
+      - libtool
+      - libjpeg-dev
+      - libpng-dev
+      - libperl-dev
+      - libdbi-dev
+    state: present
+    update_cache: yes
+
+- name: Create Nagios user and group
+  user:
+    name: "{{ nagios_user }}"
+    shell: /bin/bash
+    create_home: yes
+
+- name: Create nagcmd group
+  group:
+    name: "{{ nagios_group }}"
+
+- name: Ensure nagcmd group exists and is present
+  group:
+    name: "{{ nagios_group }}"
+    state: present
+
+- name: Wait briefly for system to register new group
+  pause:
+    seconds: 2
+
+- name: Add nagios and apache users to nagcmd group
+  user:
+    name: "{{ item }}"
+    groups: "{{ nagios_group }}"
+    append: yes
+  loop:
+    - "{{ nagios_user }}"
+    - "{{ apache_user }}"
+
+- name: Download Nagios source
+  get_url:
+    url: "https://github.com/NagiosEnterprises/nagioscore/releases/download/nagios-{{ nagios_version }}/nagios-{{ nagios_version }}.tar.gz"
+    dest: /tmp/nagios.tar.gz
+
+- name: Extract Nagios
+  unarchive:
+    src: /tmp/nagios.tar.gz
+    dest: /tmp/
+    remote_src: yes
+
+- name: Compile and install Nagios
+  shell: |
+    cd /tmp/nagios-{{ nagios_version }}
+    ./configure --with-command-group={{ nagios_group }}
+    make all
+    make install
+    make install-init
+    make install-commandmode
+    make install-config
+    make install-webconf
+  args:
+    executable: /bin/bash
+
+- name: Create Nagios web user
+  shell: htpasswd -bc /usr/local/nagios/etc/htpasswd.users nagiosadmin nagiosadmin
+
+- name: Enable Apache CGI module
+  shell: a2enmod cgi
+  args:
+    executable: /bin/bash
+  notify: reload apache
+
+- name: Enable Apache service
+  systemd:
+    name: apache2
+    enabled: yes
+  notify: reload apache
+
+- name: Enable Nagios service
+  systemd:
+    name: nagios
+    enabled: yes
+  notify: restart nagios
+
+- name: Add /usr/local/nagios/bin to system PATH
+  copy:
+    dest: /etc/profile.d/nagios.sh
+    content: 'export PATH=$PATH:/usr/local/nagios/bin'
+    mode: '0755'

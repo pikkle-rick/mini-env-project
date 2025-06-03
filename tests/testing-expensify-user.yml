@@ -1,6 +1,6 @@
 ---
 - name: Check passwordless sudo for user
-  hosts: load_balancer
+  hosts: loadbalancer
   become: false
   vars:
     test_user: expensify

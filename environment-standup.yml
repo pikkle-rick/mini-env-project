@@ -1,0 +1,79 @@
+---
+# This ansible playbook will setup the entire challenge
+- name: Apply common and upgrade-os roles to all hosts
+  hosts: all
+  become: true
+  roles:
+    - upgrade-os
+
+- name: Create the expensify user add ssh keys to all hosts and enable passwordless sudo
+  hosts: all
+  become: yes
+  roles:
+    - role: user-setup
+
+- name: Configure Nagios
+  hosts: monitoring
+  become: true
+  roles:
+    - nagios-setup
+
+- name: Setup Webservers
+  hosts: webservers
+  become: yes
+  roles:
+    - role: webservers
+
+- name: Configure HAProxy Load Balancer
+  hosts: loadbalancer
+  become: yes
+  roles:
+    - role: haproxy-setup
+      vars:
+        haproxy_backend_group: webservers
+        haproxy_balance_method: source
+
+- name: Configure the Bastion host (monitoring host)
+  hosts: monitoring
+  become: yes
+  roles:
+    - role: bastion-setup
+      tasks_from: bastion-setup.yml
+
+- name: Configure the Bastion host (monitoring host)
+  hosts: webservers:loadbalancer
+  become: yes
+  roles:
+    - role: bastion-setup
+      tasks_from: deploy-bastion-key.yml    
+
+- name: Secure the loadbalancer
+  hosts: loadbalancer
+  become: yes
+  roles:
+    - role: secure-loadbalancer
+
+- name: Wait before continuing to web servers
+  hosts: localhost
+  tasks:
+    - pause:
+        prompt: "Load balancer lock-down complete. Press ENTER to continue to web servers"
+
+- name: Secure the webservers
+  hosts: webservers
+  become: yes
+  roles:
+    - role: secure-network
+      tasks_from: secure-webserver.yml
+
+- name: Wait before continuing to bastion host
+  hosts: localhost
+  tasks:
+    - pause:
+        prompt: "Webserver lock-down complete. Press ENTER to continue to bastion"
+
+- name: Secure the bastion host
+  hosts: monitoring
+  become: yes
+  roles:
+    - role: secure-bastion

@@ -1,0 +1,4 @@
+---
+# - import_tasks: install-nagios.yml
+- import_tasks: add-hosts-to-nagios.yml
+- import_tasks: add-custom-nagios-check.yml

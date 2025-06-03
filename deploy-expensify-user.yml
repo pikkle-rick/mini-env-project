@@ -1,0 +1,6 @@
+---
+- name: Run only user-setup role
+  hosts: all
+  become: yes
+  roles:
+    - role: user-setup

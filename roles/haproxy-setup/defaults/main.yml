@@ -1,0 +1,4 @@
+---
+haproxy_port: 80
+haproxy_backend_group: "webservers"
+haproxy_balance_method: "source"

@@ -1,0 +1,6 @@
+---
+- name: Run only webservers role
+  hosts: webservers
+  become: yes
+  roles:
+    - role: webservers
