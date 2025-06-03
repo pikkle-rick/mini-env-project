@@ -9,6 +9,11 @@ Contains the code used while establishing the mini environment challenge.
   - Repeatability wasn’t in the requirements, and this was a small task. In the beginning leaned toward **not** using Ansible because it didn’t seem worth the additional time based on requirements.
   - After working on this for a bit I decided it would be good to show that I could use the tool, and I got tired of reapplying some changes during manual testing, so I used Ansible after all. It also supports Jinja templating out of the box, making it easy to create and apply the `index.html` and HAProxy config file(s). I didn’t go back and rewrite the bash script I originally started with for setting up the users. Some tech debt was created here but could be easily migrated over.
   - I rewrote the initial scripts to be an ansible playbook so we have can have on playbook to launch the entire environment.
+  - The initial structure of the repo doesn't follow the Ansible recommended conventions very strictly because:
+    - I thought it introduced a lot of overhead for this simple task.
+    - In an email exchange "simplicity and clarity" were mentioned as objectives and while I can see both sides of the argument (following the convention makes it simpler versus not) I ultimately decided what I originally implemented was pretty easy to digest.
+    - Depending on how often you use ansible it can make it more challenging to debug and read following the convention strictly.
+    - I have another branch pushed that refractors the repo to more tightly align with the recommended Anssible conventions if that would be preferred. Normally I would either look at examples of how it has been previously done/implemented or ask for guidance.
 - I used Apache for the web servers: extremely popular, free, available via `apt`, and already used for Nagios.
   - Popularity usually means great community supporting documentation.
 - I chose HAProxy as the load balancer; it is extremely popular, lightweight, and readily available via `apt`.
@@ -191,7 +196,7 @@ ansible-playbook -i hosts.ini environment-stand-up.yml
 - In the email, the Ubuntu version referenced was 20.04; the actual version was 24.x.
 - I chose the load balancer host based on the IP address. The 54.x.x.x address is on a completely different network than the other three hosts. The other three hosts were randomly assigned for the web servers and monitoring host.
 - I added the monitoring Ubuntu SSH key under the `expensify` user on the load balancer for testing.
-- I originally installed Nagios myself so the ansible playbook to install Nagios hasn't been tested. If I was working normally I would stand up another EC2 to test the playbook out on that way I wouldn't impact what was working.
+- I originally installed Nagios myself so the ansible playbook to install Nagios hasn't been tested other than with `ansible-playbook --check`. If I was working normally I would stand up another EC2 to test the playbook out on that way I wouldn't impact what was working.
 
 ## Challenges
 
