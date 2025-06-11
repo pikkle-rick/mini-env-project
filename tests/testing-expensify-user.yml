@@ -3,7 +3,7 @@
   hosts: load_balancer
   become: false
   vars:
-    test_user: expensify
+    test_user: testUser
 
   tasks:
     - name: Ensure we can SSH as the user

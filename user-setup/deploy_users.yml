@@ -3,7 +3,7 @@
   hosts: all
   become: yes
   vars:
-    expensify_user: expensify
+    test_user: testUser
     pubkey_path: ./files/infra_team_authorized_keys
 
   tasks:
@@ -20,35 +20,35 @@
       become: no
       when: not pubkey_file.stat.exists
 
-    - name: Ensure user '{{ expensify_user }}' exists
+    - name: Ensure user '{{ test_user }}' exists
       ansible.builtin.user:
-        name: "{{ expensify_user }}"
+        name: "{{ test_user }}"
         shell: /bin/bash
         state: present
         create_home: yes
 
-    - name: Ensure '{{ expensify_user }}' is in sudo group
+    - name: Ensure '{{ test_user }}' is in sudo group
       ansible.builtin.user:
-        name: "{{ expensify_user }}"
+        name: "{{ test_user }}"
         groups: sudo
         append: yes
 
-    - name: Create .ssh directory for '{{ expensify_user }}'
+    - name: Create .ssh directory for '{{ test_user }}'
       ansible.builtin.file:
-        path: "/home/{{ expensify_user }}/.ssh"
+        path: "/home/{{ test_user }}/.ssh"
         state: directory
-        owner: "{{ expensify_user }}"
-        group: "{{ expensify_user }}"
+        owner: "{{ test_user }}"
+        group: "{{ test_user }}"
         mode: '0700'
 
     - name: Copy public key to authorized_keys
       ansible.builtin.copy:
         src: "{{ pubkey_path }}"
-        dest: "/home/{{ expensify_user }}/.ssh/authorized_keys"
-        owner: "{{ expensify_user }}"
-        group: "{{ expensify_user }}"
+        dest: "/home/{{ test_user }}/.ssh/authorized_keys"
+        owner: "{{ test_user }}"
+        group: "{{ test_user }}"
         mode: '0600'
 
     - name: Confirm completion
       ansible.builtin.debug:
-        msg: "User '{{ expensify_user }}' created and SSH key installed on {{ inventory_hostname }}"
+        msg: "User '{{ test_user }}' created and SSH key installed on {{ inventory_hostname }}"
