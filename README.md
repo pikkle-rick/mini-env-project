@@ -70,7 +70,7 @@ ansible-playbook -i hosts.ini upgrade-system.yml
 
 ## Enable Passwordless Sudo
 
-I enabled passwordless sudo for the `expensify` user.
+I enabled passwordless sudo for the `testUser` user.
 
 ```bash
 ansible-playbook -i hosts.ini passwordless-sudo.yml
@@ -175,7 +175,7 @@ ansible-playbook -i hosts.ini environment-standup.yml
 - I updated `authorized_keys` for `ubuntu` to use a different computer. The original SSH key was on my desktop.
 - In the email, the Ubuntu version referenced was 20.04; the actual version was 24.x.
 - I chose the load balancer host based on the IP address. The 54.x.x.x address is on a completely different network than the other three hosts. The other three hosts were randomly assigned for the web servers and monitoring host.
-- I added the monitoring Ubuntu SSH key under the `expensify` user on the load balancer for testing.
+- I added the monitoring Ubuntu SSH key under the `testUser` user on the load balancer for testing.
 - I originally installed Nagios myself so the ansible playbook to install Nagios hasn't been tested. If I was working normally I would stand up another EC2 to test the playbook out on that way I wouldn't impact what was working.
 
 ## Challenges

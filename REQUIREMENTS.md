@@ -37,8 +37,8 @@ This project sets up a self-contained miniature infrastructure environment consi
 
 ## 5. User Configuration
 
-5.1. Create a user named `expensify` on all servers.  
-5.2. Grant `expensify` passwordless sudo access.  
+5.1. Create a user named `testUser` on all servers.  
+5.2. Grant `testUser` passwordless sudo access.  
 5.3. Install the provided public SSH key in `~/.ssh/authorized_keys`.
 
 ## 6. Network Security

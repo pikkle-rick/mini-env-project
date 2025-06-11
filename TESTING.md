@@ -10,8 +10,8 @@
       1. `ssh user@34.210.75.57` : expect success
       2. `ssh user@34.220.22.168` : expect success
       3. `ssh user@54.212.120.113` : expect success
-2. Verify `expensify` user (verifies 5.1, 5.2 and 5.3)
-   1. Log into monitoring host: `ssh expensify@34.220.36.87`
+2. Verify `testUser` user (verifies 5.1, 5.2 and 5.3)
+   1. Log into monitoring host: `ssh testUser@34.220.36.87`
    2. Confirm passwordless sudo: `sudo ls`
    3. Repeat steps 1 and 2 for remaining hosts. (5.1, 5.2, 5.3)
 3. Load Balancer (verifies requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, and 3.7)
